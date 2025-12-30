@@ -1,9 +1,8 @@
-
 import streamlit as st
 import sqlite3
 import pandas as pd
 
-# قاعدة البيانات
+# 1. Database Setup
 conn = sqlite3.connect('maison_balkiss_pro.db', check_same_thread=False)
 c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS ai_projects 
@@ -13,7 +12,15 @@ conn.commit()
 
 st.set_page_config(page_title="Maison Balkiss AI Business", layout="wide")
 
-tech_services = ["AI & INNOVATION", "BRANDING & AI", "SMART TOURISM 4.0", "TECH ACADEMY 4.0", "ATELIERS", "Consulting"]
+# 2. Services from your Official Menu
+tech_services = [
+    "AI & INNOVATION", 
+    "BRANDING & AI", 
+    "SMART TOURISM 4.0", 
+    "TECH ACADEMY 4.0",
+    "ATELIERS",
+    "Consulting"
+]
 
 st.sidebar.title("👑 Maison Balkiss AI")
 admin_mode = st.sidebar.checkbox("🔒 Admin Dashboard")
@@ -22,34 +29,40 @@ st.title("⚜️ AI Business Management System")
 tab1, tab2, tab3 = st.tabs(["🚀 New Project", "📅 Project Pipeline", "📊 Finance & Admin"])
 
 with tab1:
-    st.subheader("📩 تسجيل مشروع جديد")
+    st.subheader("📩 Register New AI Project")
     with st.form("tech_form", clear_on_submit=True):
         c1, c2 = st.columns(2)
         with c1:
-            client = st.text_input("👤 اسم العميل")
-            service = st.selectbox("🛠️ الخدمة", tech_services)
-            total = st.number_input("💰 الميزانية", min_value=0.0)
+            client = st.text_input("👤 Client Name")
+            service = st.selectbox("🛠️ Service Type", tech_services)
+            total = st.number_input("💰 Total Project Budget", min_value=0.0)
         with c2:
-            deadline = st.date_input("📅 التسليم")
-            advance = st.number_input("💵 العربون", min_value=0.0)
-            curr = st.selectbox("💱 العملة", ["USD", "EUR", "MAD"])
+            deadline = st.date_input("📅 Delivery Deadline")
+            advance = st.number_input("💵 Advance Payment", min_value=0.0)
+            curr = st.selectbox("💱 Currency", ["USD", "EUR", "MAD"])
         
-        if st.form_submit_button("✅ حفظ المشروع"):
+        if st.form_submit_button("✅ Save & Generate Invoice"):
             if client:
                 c.execute("INSERT INTO ai_projects (client, service, deadline, total, advance, status) VALUES (?, ?, ?, ?, ?, ?)",
                           (client, service, deadline.strftime("%Y-%m-%d"), total, advance, "In Progress"))
                 conn.commit()
-                st.success(f"✅ تم تسجيل مشروع {service}!")
+                st.success(f"✅ Project for {client} saved successfully!")
 
 with tab2:
-    st.subheader("📅 Project Pipeline")
-    df = pd.read_sql_query("SELECT client, service, deadline, status FROM ai_projects", conn)
-    st.dataframe(df, use_container_width=True)
+    st.subheader("📅 Project Pipeline & Deadlines")
+    df = pd.read_sql_query("SELECT client as 'Client', service as 'Service', deadline as 'Deadline', status as 'Status' FROM ai_projects", conn)
+    if not df.empty:
+        st.dataframe(df, use_container_width=True)
+    else:
+        st.info("No active projects found.")
 
 with tab3:
     if admin_mode:
-        pwd = st.text_input("Password", type="password")
+        pwd = st.text_input("Enter Admin Password", type="password")
         if pwd == "12345678ouafaa@":
             full_df = pd.read_sql_query("SELECT * FROM ai_projects", conn)
+            st.write("### 📊 Financial Insights")
             st.dataframe(full_df, use_container_width=True)
-            st.metric("📈 إجمالي الأرباح", f"{full_df['total'].sum()} {curr}")
+            st.metric("📈 Total Revenue Forecast", f"{full_df['total'].sum()} {curr}")
+        else:
+            st.warning("Admin access required to view financials.")
