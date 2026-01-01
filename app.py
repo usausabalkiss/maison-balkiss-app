@@ -22,6 +22,7 @@ admin_mode = st.sidebar.checkbox("🔒 Admin Dashboard")
 st.title("⚜️ AI Business Management System")
 tab1, tab2, tab3 = st.tabs(["🚀 New Project", "📅 Project Pipeline", "📊 Finance & Admin"])
 
+st.markdown("""<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('https://cdn.jsdelivr.net/gh/michelegera/pwa-streamlit/sw.js'); }</script>""", unsafe_allow_html=True)
 with tab1:
     st.subheader("📩 Register New AI Project")
     with st.form("tech_form", clear_on_submit=True):
